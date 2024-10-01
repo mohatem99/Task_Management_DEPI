@@ -11,7 +11,7 @@ import ApiError from "../../utils/apiError.js";
 
 import { sendMail } from "../../services/sendEmail.service.js";
 import { cloudinaryConfig } from "../../utils/cloudinary.js";
-
+import { mailBody } from "../../utils/mailTemplate.js";
 export const register = asyncHandler(async (req, res, next) => {
   const { name, email, password } = req.body;
 
@@ -93,7 +93,7 @@ export const forgetPassword = asyncHandler(async (req, res, next) => {
       to: email,
       subject: "Code to reset password",
 
-      htmlMessage: `<h1>Your code is ${otp}</h1>`,
+      htmlMessage: mailBody(otp),
     });
   } catch (err) {
     user.passwordResetExpires = undefined;
