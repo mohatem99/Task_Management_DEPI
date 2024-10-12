@@ -12,6 +12,7 @@ const auth = () => {
     }
 
     // check bearer token key word
+    console.log(token);
     if (!token.startsWith(process.env.TOKEN_BEARER)) {
       return next(new ApiError("Invalid token", 400));
     }
