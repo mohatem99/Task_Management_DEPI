@@ -6,10 +6,10 @@ const taskSchmea = new Schema(
     description: { type: String },
 
     dueDate: { type: Date },
-    priority: { type: String, enum: ["Low", "Medium", "High"], default: "Low" },
+    priority: { type: String, enum: ["low", "medium", "high"], default: "Low" },
     status: {
       type: String,
-      enum: ["Pending", "In Progress", "Completed"],
+      enum: ["pending", "in progress", "completed"],
       default: "Pending",
     },
     category: { type: Schema.Types.ObjectId, ref: "Category" },

@@ -1,4 +1,4 @@
-import { Server } from "engine.io";
+import { Server } from "socket.io";
 //establish the connection
 let io = null;
 export const establishSocketConnection = (server) => {
