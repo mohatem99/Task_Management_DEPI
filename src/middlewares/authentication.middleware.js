@@ -36,7 +36,7 @@ const auth = () => {
     }
 
     // check if User change password after token created
-    if (currentUser.passwordChangedAt) {
+    if (currentUser?.passwordChangedAt) {
       // next nedd to check token date created if change password
 
       const passChangedTimestamp = parseInt(
