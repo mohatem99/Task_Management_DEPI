@@ -4,21 +4,20 @@ import User from "../db/models/user.model.js";
 import { asyncHandler } from "./errorHandler.middleware.js";
 const auth = () => {
   return asyncHandler(async (req, res, next) => {
-    const { token } = req.headers;
+    let token;
 
-    // check token exists
+    if (
+      req.headers.token &&
+      req.headers.token.startsWith(process.env.TOKEN_BEARER)
+    ) {
+      token = req.headers.token.split(" ")[1];
+    }
     if (!token) {
+      // check token exists
       return next(new ApiError("You are not login please login first", 401));
     }
 
-    // check bearer token key word
-    console.log(token);
-    if (!token.startsWith(process.env.TOKEN_BEARER)) {
-      return next(new ApiError("Invalid token", 400));
-    }
-    // extract token
-    let originalToken = token.split(" ")[1];
-    const decoded = jwt.verify(originalToken, process.env.TOKEN_SECRET);
+    const decoded = jwt.verify(token, process.env.TOKEN_SECRET);
 
     // check payload in the token
     if (!decoded?.userId) {
@@ -27,8 +26,32 @@ const auth = () => {
 
     //get the user data
     const currentUser = await User.findById(decoded.userId);
+    if (!currentUser) {
+      return next(
+        new ApiError(
+          "The user that belong to this token does no longer exist",
+          401
+        )
+      );
+    }
 
-    // next nedd to check token date created if change password
+    // check if User change password after token created
+    if (currentUser.passwordChangedAt) {
+      // next nedd to check token date created if change password
+
+      const passChangedTimestamp = parseInt(
+        currentUser.passwordChangedAt.getTime() / 1000,
+        10
+      );
+      if (passChangedTimestamp > decoded.iat) {
+        return next(
+          new ApiError(
+            "User recently changed his password. please login again!.",
+            401
+          )
+        );
+      }
+    }
 
     req.user = currentUser;
     next();

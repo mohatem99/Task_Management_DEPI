@@ -23,6 +23,7 @@ const userSchema = new Schema(
     passwordChangedAt: Date,
     passwordResetExpires: Date,
     passwordResetVerified: Boolean,
+    customId: String,
 
     role: {
       type: String,

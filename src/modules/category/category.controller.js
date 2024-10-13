@@ -29,7 +29,7 @@ export const updateUserCategory = asyncHandler(async (req, res, next) => {
   const { name } = req.body;
 
   const category = await Category.findById(id);
-  console.log(category);
+
   if (!category)
     return next(new ApiError(`no category found with id ${id}`, 404));
 

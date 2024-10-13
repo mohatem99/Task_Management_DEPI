@@ -37,6 +37,7 @@ export const register = asyncHandler(async (req, res, next) => {
     email,
     name,
     password,
+    customId,
     image: { secure_url, public_id },
   });
   res.status(201).json({
@@ -80,7 +81,6 @@ export const forgetPassword = asyncHandler(async (req, res, next) => {
 
   const hashedResetCode = crypto.createHash("sha256").update(otp).digest("hex");
 
-  console.log(hashedResetCode);
   // Add expiration time for password reset code (10 min)
   user.passwordResetExpires = Date.now() + 10 * 60 * 1000;
   user.passwordResetVerified = false;
@@ -115,13 +115,12 @@ export const verifyPasswordResetCode = asyncHandler(async (req, res, next) => {
     .createHash("sha256")
     .update(resetCode)
     .digest("hex");
-  console.log(hashedResetCode);
 
   const user = await User.findOne({
     otp: hashedResetCode,
     passwordResetExpires: { $gt: Date.now() },
   });
-  console.log(user);
+
   if (!user) {
     return next(new ApiError("Reset code invalid or expired"));
   }
