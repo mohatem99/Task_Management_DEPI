@@ -69,7 +69,7 @@ export const createTask = asyncHandler(async (req, res, next) => {
 export const getTasks = asyncHandler(async (req, res, next) => {
   const tasks = await Task.find({
     $or: [{ createdBy: req.user._id }, { assignedTo: req.user._id }],
-  }).populate("createdBy assignedTo");
+  }).populate("createdBy assignedTo category");
   console.log(tasks);
 
   res.status(200).json({
