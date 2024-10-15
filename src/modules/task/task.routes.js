@@ -11,10 +11,11 @@ import auth from "../../middlewares/authentication.middleware.js";
 
 const router = Router();
 router.route("/").post(auth(), createTask).get(auth(), getTasks);
+router.get("/dash-stats", auth(), tasksStats);
 router
   .route("/:id")
   .put(auth(), updateTask)
   .delete(auth(), deleteTask)
   .get(auth(), getTask);
-router.get("/stats", auth(), tasksStats);
+
 export default router;

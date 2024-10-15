@@ -165,7 +165,7 @@ export const deleteTask = asyncHandler(async (req, res, next) => {
 });
 export const tasksStats = asyncHandler(async (req, res, next) => {
   const userId = req.user._id; // The authenticated user's ID from the token
-
+  console.log(userId);
   // Fetch task stats for the authenticated user only
   const completed = await Task.countDocuments({
     status: "completed",
