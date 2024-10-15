@@ -49,10 +49,16 @@ export const createTask = asyncHandler(async (req, res, next) => {
   let io = getSocket();
 
   // Emit a socket event to notify the assigned user in real-time
-  io.to(assignedTo.toString()).emit("taskAssigned", {
-    message: notificationData.message,
-    task: newTask,
-  });
+  if (assignedTo.toString() != req.user._id.toString()) {
+    io.to(assignedTo).emit("taskAssigned", {
+      message: notificationData.message,
+      task: newTask,
+    });
+    io.to(assignedTo).emit("task", {
+      message: notificationData.message,
+      task: newTask,
+    });
+  }
   res.status(201).json({
     status: "success",
     message: "Task created successfully",

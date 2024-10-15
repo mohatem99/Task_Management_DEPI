@@ -4,7 +4,6 @@ const categorySchema = new Schema(
     name: {
       type: String,
       required: true,
-      unique: true,
     },
     createdBy: { type: Schema.Types.ObjectId, required: true, ref: "user" },
   },

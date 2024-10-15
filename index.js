@@ -6,6 +6,7 @@ import dbConnection from "./src/db/dbconnection.js";
 import authRoutes from "./src/modules/auth/auth.routes.js";
 import categoryRoutes from "./src/modules/category/category.routes.js";
 import usersRoutes from "./src/modules/user/user.routes.js";
+import notificationsRoutes from "./src/modules/notifications/notifications.routes.js";
 
 import taskRoutes from "./src/modules/task/task.routes.js";
 import ApiError from "./src/utils/apiError.js";
@@ -27,6 +28,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/users", usersRoutes);
 app.use("/api/categories", categoryRoutes);
 app.use("/api/tasks", taskRoutes);
+app.use("/api/notifications", notificationsRoutes);
 
 app.use("*", (req, res, next) => {
   return next(new ApiError(`Can't find this route: ${req.originalUrl}`, 400));
@@ -42,7 +44,7 @@ io.on("connection", (socket) => {
   socket.on("join", (userId) => {
     console.log(`User ${userId} joined room`);
   });
-  socket.on("disconnect", () => {
-    console.log("User disconnected:", socket.id);
-  });
+  // socket.on("disconnect", () => {
+  //   console.log("User disconnected:", socket.id);
+  // });
 });

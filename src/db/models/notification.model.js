@@ -11,6 +11,7 @@ const notificationSchema = new Schema(
       ref: "User",
       required: true,
     },
+    taskId: { type: Schema.Types.ObjectId, ref: "Task" }, // Optional: task-related notifications
     isRead: { type: Boolean, default: false },
   },
   { timestamps: true }
