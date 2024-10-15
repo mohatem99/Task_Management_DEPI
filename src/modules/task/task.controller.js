@@ -80,7 +80,7 @@ export const getTasks = asyncHandler(async (req, res, next) => {
 
 export const updateTask = asyncHandler(async (req, res, next) => {
   const { id } = req.params;
-  console.log(id);
+
   const {
     title,
     description,
@@ -95,8 +95,10 @@ export const updateTask = asyncHandler(async (req, res, next) => {
     return next(new ApiError(`no task found with id ${id}`, 404));
   }
   // need to check if the user created the task or assigned to it to update
+  console.log(taskExist.createdBy.toString() !== req.user._id.toString());
+  console.log(taskExist.assignedTo.toString() !== req.user._id.toString());
   if (
-    taskExist.createdBy.toString() !== req.user._id.toString() ||
+    taskExist.createdBy.toString() !== req.user._id.toString() &&
     taskExist.assignedTo.toString() !== req.user._id.toString()
   ) {
     return next(
@@ -282,4 +284,19 @@ export const tasksStats = asyncHandler(async (req, res, next) => {
   // };
 
   res.json(structuredStats);
+});
+
+export const getTask = asyncHandler(async (req, res, next) => {
+  const { id } = req.params;
+  const taskExist = await Task.findById(id).populate(
+    "createdBy assignedTo category"
+  );
+  if (!taskExist) {
+    return next(new ApiError(`no task found with id ${id}`, 404));
+  }
+
+  res.status(200).json({
+    status: "success",
+    task: taskExist,
+  });
 });
