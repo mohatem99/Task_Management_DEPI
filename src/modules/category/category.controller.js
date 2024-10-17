@@ -1,4 +1,6 @@
 import Category from "../../db/models/category.model.js";
+
+import Task from "../../db/models/task.model.js";
 import { asyncHandler } from "../../middlewares/errorHandler.middleware.js";
 import ApiError from "../../utils/apiError.js";
 
@@ -61,7 +63,11 @@ export const deleteUserCategory = asyncHandler(async (req, res, next) => {
   }
 
   await Category.findByIdAndDelete(id);
-  res.status(200).json({ status: "success", message: "Category deleted" });
+  // Delete the tasks related to the deleted category
+  await Task.deleteMany({ category: id });
+  res
+    .status(200)
+    .json({ status: "success", message: "Category and related tasks deleted" });
 });
 
 export const getUserCategory = asyncHandler(async (req, res, next) => {

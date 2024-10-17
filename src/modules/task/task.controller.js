@@ -19,6 +19,7 @@ export const createTask = asyncHandler(async (req, res, next) => {
   } = req.body;
 
   const category = await Category.findById(categoryId);
+
   if (!category) {
     return next(new ApiError(`no category found with id ${id}`, 404));
   }
@@ -41,7 +42,6 @@ export const createTask = asyncHandler(async (req, res, next) => {
   });
 
   let io = getSocket();
-  console.log(assignedTo.toString() != req.user._id.toString());
 
   // Emit a socket event to notify the assigned user in real-time
   if (assignedTo.toString() != req.user._id.toString()) {
@@ -49,7 +49,7 @@ export const createTask = asyncHandler(async (req, res, next) => {
       message: `You have been assigned a new task: ${title}`,
       recipient: assignedUser._id,
     });
-    console.log(assignedTo);
+
     io.to(assignedTo).emit("taskAssigned", {
       message: notificationData.message,
       task: newTask,
@@ -61,11 +61,27 @@ export const createTask = asyncHandler(async (req, res, next) => {
     newTask,
   });
 });
-
 export const getTasks = asyncHandler(async (req, res, next) => {
-  const tasks = await Task.find({
+  const { priority, search } = req.query;
+
+  let filter = {
     $or: [{ createdBy: req.user._id }, { assignedTo: req.user._id }],
-  }).populate("createdBy assignedTo category");
+  };
+
+  if (priority) {
+    filter.priority = priority;
+  }
+
+  let tasks = await Task.find(filter).populate("createdBy assignedTo category");
+
+  // Step 2: Filter the tasks based on the search term, if provided
+  if (search) {
+    tasks = tasks.filter(
+      (task) =>
+        task.title.toLowerCase().includes(search.toLowerCase()) ||
+        task.description.toLowerCase().includes(search.toLowerCase())
+    );
+  }
 
   res.status(200).json({
     status: "success",
@@ -157,74 +173,96 @@ export const deleteTask = asyncHandler(async (req, res, next) => {
   });
 });
 export const tasksStats = asyncHandler(async (req, res, next) => {
- const userId = req.user._id; // The authenticated user's ID from the token
+  const userId = req.user._id; // The authenticated user's ID from the token
 
- // Fetch task stats for both created by the user and assigned to the user
- const completed = await Task.countDocuments({
-   status: "completed",
-   $or: [{ createdBy: userId }, { assignedTo: userId }],
- });
+  // Fetch task stats for both created by the user and assigned to the user
+  const completed = await Task.countDocuments({
+    status: "completed",
+    $or: [{ createdBy: userId }, { assignedTo: userId }],
+  });
 
- const inProgress = await Task.countDocuments({
-   status: "in progress",
-   $or: [{ createdBy: userId }, { assignedTo: userId }],
- });
+  const inProgress = await Task.countDocuments({
+    status: "in progress",
+    $or: [{ createdBy: userId }, { assignedTo: userId }],
+  });
 
- const pending = await Task.countDocuments({
-   status: "pending",
-   $or: [{ createdBy: userId }, { assignedTo: userId }],
- });
+  const pending = await Task.countDocuments({
+    status: "pending",
+    $or: [{ createdBy: userId }, { assignedTo: userId }],
+  });
 
- const highPriority = await Task.countDocuments({
-   priority: "high",
-   $or: [{ createdBy: userId }, { assignedTo: userId }],
- });
+  const highPriority = await Task.countDocuments({
+    priority: "high",
+    $or: [{ createdBy: userId }, { assignedTo: userId }],
+  });
 
- const mediumPriority = await Task.countDocuments({
-   priority: "medium",
-   $or: [{ createdBy: userId }, { assignedTo: userId }],
- });
+  const mediumPriority = await Task.countDocuments({
+    priority: "medium",
+    $or: [{ createdBy: userId }, { assignedTo: userId }],
+  });
 
- const lowPriority = await Task.countDocuments({
-   priority: "low",
-   $or: [{ createdBy: userId }, { assignedTo: userId }],
- });
+  const lowPriority = await Task.countDocuments({
+    priority: "low",
+    $or: [{ createdBy: userId }, { assignedTo: userId }],
+  });
 
- // Group by categories (for tasks either created by or assigned to the user)
- const categories = await Task.aggregate([
-   {
-     $match: {
-       $or: [{ createdBy: userId }, { assignedTo: userId }],
-     },
-   },
-   { $group: { _id: "$category", count: { $sum: 1 } } },
- ]);
+  // Group by categories (for tasks either created by or assigned to the user)
+  const categories = await Task.aggregate([
+    {
+      $match: {
+        $or: [{ createdBy: userId }, { assignedTo: userId }],
+      },
+    },
+    {
+      $group: {
+        _id: "$category", // Grouping by category ID
+        count: { $sum: 1 }, // Counting tasks in each category
+      },
+    },
+    {
+      $lookup: {
+        from: "categories", // Name of the categories collection
+        localField: "_id", // Field from the Task collection
+        foreignField: "_id", // Field from the Category collection
+        as: "categoryInfo", // Output array field for matched documents
+      },
+    },
+    {
+      $unwind: "$categoryInfo", // Unwind to convert array to object
+    },
+    {
+      $project: {
+        _id: 0, // Exclude the original _id field
+        categoryName: "$categoryInfo.name", // Assuming 'name' is the field for category name
+        count: 1, // Include the count
+      },
+    },
+  ]);
 
- // Group tasks by creation date (for tasks either created by or assigned to the user)
- const tasksByDate = await Task.aggregate([
-   {
-     $match: {
-       $or: [{ createdBy: userId }, { assignedTo: userId }],
-     },
-   },
-   {
-     $group: {
-       _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
-       count: { $sum: 1 },
-     },
-   },
-   { $sort: { _id: 1 } },
- ]);
+  // Group tasks by creation date (for tasks either created by or assigned to the user)
+  const tasksByDate = await Task.aggregate([
+    {
+      $match: {
+        $or: [{ createdBy: userId }, { assignedTo: userId }],
+      },
+    },
+    {
+      $group: {
+        _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
+        count: { $sum: 1 },
+      },
+    },
+    { $sort: { _id: 1 } },
+  ]);
 
- const stats = {
-   statusStats: { completed, inProgress, pending },
-   priorityStats: { highPriority, mediumPriority, lowPriority },
-   categoryStats: categories,
-   tasksByDate,
- };
+  const stats = {
+    statusStats: { completed, inProgress, pending },
+    priorityStats: { highPriority, mediumPriority, lowPriority },
+    categoryStats: categories,
+    tasksByDate,
+  };
 
- res.status(200).json({ status: "success", stats });
-
+  res.status(200).json({ status: "success", stats });
 });
 
 export const getTask = asyncHandler(async (req, res, next) => {

@@ -54,6 +54,7 @@ const auth = () => {
     }
 
     req.user = currentUser;
+
     next();
   });
 };
