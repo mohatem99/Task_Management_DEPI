@@ -10,6 +10,9 @@ export const getNotifications = asyncHandler(async (req, res, next) => {
 
 export const readNotification = asyncHandler(async (req, res, next) => {
   const { notificationId } = req.params;
+
+  console.log(notificationId);
+  console.log("hii");
   const notification = await Notification.findByIdAndUpdate(
     notificationId,
     {

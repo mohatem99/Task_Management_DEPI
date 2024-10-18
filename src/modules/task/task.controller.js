@@ -21,7 +21,12 @@ export const createTask = asyncHandler(async (req, res, next) => {
   const category = await Category.findById(categoryId);
 
   if (!category) {
-    return next(new ApiError(`no category found with id ${id}`, 404));
+    return next(
+      new ApiError(
+        `no category for this ${categoryId},Please Create Category first `,
+        404
+      )
+    );
   }
 
   const assignedUser = await User.findById(assignedTo);
@@ -48,11 +53,12 @@ export const createTask = asyncHandler(async (req, res, next) => {
     const notificationData = await Notification.create({
       message: `You have been assigned a new task: ${title}`,
       recipient: assignedUser._id,
+      taskId: newTask._id,
     });
 
     io.to(assignedTo).emit("taskAssigned", {
       message: notificationData.message,
-      task: newTask,
+      task: notificationData,
     });
   }
   res.status(201).json({

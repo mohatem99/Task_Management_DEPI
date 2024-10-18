@@ -50,6 +50,10 @@ export const register = asyncHandler(async (req, res, next) => {
 export const login = asyncHandler(async (req, res, next) => {
   const { email, password } = req.body;
 
+  if (!email || !password) {
+    return next(new ApiError("Please provide email and password", 400));
+  }
+
   const user = await User.findOne({ email }).select("+password");
 
   if (!user || !(await bcrypt.compare(password, user.password))) {
