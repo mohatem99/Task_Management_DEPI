@@ -32,7 +32,12 @@ export const createTask = asyncHandler(async (req, res, next) => {
   const assignedUser = await User.findById(assignedTo);
 
   if (!assignedUser) {
-    return next(new ApiError(`no user found with id ${assignedTo}`, 404));
+    return next(
+      new ApiError(
+        `no user found with id ${assignedTo} ,Please add Creater`,
+        404
+      )
+    );
   }
 
   const newTask = await Task.create({
@@ -101,12 +106,14 @@ export const updateTask = asyncHandler(async (req, res, next) => {
   const {
     title,
     description,
+    dueDate,
 
     priority,
     status,
     categoryId,
     assignedTo,
   } = req.body;
+
   const taskExist = await Task.findById(id);
   if (!taskExist) {
     return next(new ApiError(`no task found with id ${id}`, 404));
@@ -127,12 +134,15 @@ export const updateTask = asyncHandler(async (req, res, next) => {
   const isAssignedToDifferentFromCreatedBy =
     assignedTo && assignedTo !== String(taskExist.createdBy);
 
+  if (dueDate) {
+    dueDate = Date(dueDate);
+  }
   const newTask = await Task.findByIdAndUpdate(
     id,
     {
       title,
       description,
-
+      dueDate,
       priority,
       status,
       categoryId,

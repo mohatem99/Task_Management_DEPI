@@ -114,7 +114,7 @@ export const forgetPassword = asyncHandler(async (req, res, next) => {
 });
 export const verifyPasswordResetCode = asyncHandler(async (req, res, next) => {
   const { resetCode } = req.body;
-  console.log(resetCode);
+
   const hashedResetCode = crypto
     .createHash("sha256")
     .update(resetCode)

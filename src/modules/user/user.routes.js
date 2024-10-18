@@ -11,7 +11,7 @@ import auth from "../../middlewares/authentication.middleware.js";
 
 const router = Router();
 
-router.route("/").get(allUsers);
+router.route("/").get(auth(), allUsers);
 router.get("/me", auth(), getProfile);
 
 router.put(
