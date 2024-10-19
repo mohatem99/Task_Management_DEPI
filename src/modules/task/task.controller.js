@@ -142,7 +142,7 @@ export const updateTask = asyncHandler(async (req, res, next) => {
       dueDate,
       priority,
       status,
-      categoryId,
+      category: categoryId,
       assignedTo,
     },
     { new: true }
