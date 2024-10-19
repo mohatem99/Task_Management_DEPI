@@ -103,7 +103,7 @@ export const getTasks = asyncHandler(async (req, res, next) => {
 export const updateTask = asyncHandler(async (req, res, next) => {
   const { id } = req.params;
 
-  const {
+  let {
     title,
     description,
     dueDate,
