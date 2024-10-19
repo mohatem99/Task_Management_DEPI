@@ -134,9 +134,6 @@ export const updateTask = asyncHandler(async (req, res, next) => {
   const isAssignedToDifferentFromCreatedBy =
     assignedTo && assignedTo !== String(taskExist.createdBy);
 
-  if (dueDate) {
-    dueDate = Date(dueDate);
-  }
   const newTask = await Task.findByIdAndUpdate(
     id,
     {
