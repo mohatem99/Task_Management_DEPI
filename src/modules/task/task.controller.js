@@ -43,7 +43,7 @@ export const createTask = asyncHandler(async (req, res, next) => {
   const newTask = await Task.create({
     title,
     description,
-    dueDate: Date(dueDate),
+    dueDate,
     priority,
     status,
     category: category._id,
